@@ -4475,14 +4475,14 @@ static void GetScanListRow(uint16_t displayIndex, ListRow *row) {
     if (enabled) buf[--len] = '\0';
     while (len > 0 && buf[len - 1] == ' ') buf[--len] = '\0';
     snprintf(row->left, sizeof(row->left), "%s", buf);
-    if (enabled) { snprintf(row->right, sizeof(row->right), "<===="); }
+    if (enabled) { snprintf(row->right, sizeof(row->right), "<    "); }
     else           row->right[0] = '\0';
 }
 
 static void GetBandRow(uint16_t index, ListRow *row) {
     uint8_t bandIndex = GetBandIndexForRow((uint8_t)index);
     snprintf(row->left, sizeof(row->left), "%d:%s", bandIndex + 1, BParams[bandIndex].BandName);
-    if (settings.bandEnabled[bandIndex]) { snprintf(row->right, sizeof(row->right), "<====");}
+    if (settings.bandEnabled[bandIndex]) { snprintf(row->right, sizeof(row->right), "<    ");}
     else                                   row->right[0] = '\0';
 }
 
