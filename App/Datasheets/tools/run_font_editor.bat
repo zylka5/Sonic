@@ -1,2 +1,2 @@
 @echo off
-python font_editor_iggi.py
+python font_editor.py

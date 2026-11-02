@@ -109,7 +109,7 @@ void UI_PrintStringSmallbackground(const char *pString, uint8_t Start, uint8_t E
         return;
 
     const size_t Length = strlen(pString);
-    const unsigned int char_width  = ARRAY_SIZE(gFontSmall[0]);
+    const unsigned int char_width  = ARRAY_SIZE(gFontSmallBold[0]);
     const unsigned int spacing     = 1;
     const unsigned int space_width = 4;
 
@@ -133,9 +133,9 @@ void UI_PrintStringSmallbackground(const char *pString, uint8_t Start, uint8_t E
 
         if (c > ' ') {
             const unsigned int index = (unsigned int)c - ' ' - 1;
-            if (index < ARRAY_SIZE(gFontSmall)) {
+            if (index < ARRAY_SIZE(gFontSmallBold)) {
                 unsigned int char_width_used = char_width;
-                while (char_width_used > 0 && gFontSmall[index][char_width_used - 1] == 0)
+                while (char_width_used > 0 && gFontSmallBold[index][char_width_used - 1] == 0)
                     char_width_used--;
 
                 text_width += char_width_used;
@@ -182,10 +182,10 @@ void UI_PrintStringSmallbackground(const char *pString, uint8_t Start, uint8_t E
         if (c > ' ')
         {
             const unsigned int index = (unsigned int)c - ' ' - 1;
-            if (index < ARRAY_SIZE(gFontSmall))
+            if (index < ARRAY_SIZE(gFontSmallBold))
             {
                 unsigned int char_width_used = char_width;
-                while (char_width_used > 0 && gFontSmall[index][char_width_used - 1] == 0)
+                while (char_width_used > 0 && gFontSmallBold[index][char_width_used - 1] == 0)
                     char_width_used--;
 
                 if (cursor_pos < draw_limit) {
@@ -195,16 +195,16 @@ void UI_PrintStringSmallbackground(const char *pString, uint8_t Start, uint8_t E
 
                     switch (background) {
                         case 0:
-                            memmove(line_buf + cursor_pos, gFontSmall[index], writable);
+                            memmove(line_buf + cursor_pos, gFontSmallBold[index], writable);
                             break;
 
                         case 1:
                             for (size_t j = 0; j < writable; j++)
-                                line_buf[cursor_pos + j] = (uint8_t)~gFontSmall[index][j];
+                                line_buf[cursor_pos + j] = (uint8_t)~gFontSmallBold[index][j];
                             break;
 
                         default:
-                            memmove(line_buf + cursor_pos, gFontSmall[index], writable);
+                            memmove(line_buf + cursor_pos, gFontSmallBold[index], writable);
                             break;
                     }
                 }
@@ -255,7 +255,7 @@ void UI_PrintStringSmallBoldCenter(const char *pString, uint8_t center, uint8_t 
 
 void UI_PrintStringSmallBufferNormal(const char *pString, uint8_t * buffer)
 {
-    UI_PrintStringBuffer(pString, buffer, ARRAY_SIZE(gFontSmall[0]), (uint8_t *)gFontSmall);
+    UI_PrintStringBuffer(pString, buffer, ARRAY_SIZE(gFontSmallBold[0]), (uint8_t *)gFontSmallBold);
 }
 
 void UI_PrintStringSmallBufferBold(const char *pString, uint8_t * buffer)
@@ -264,8 +264,8 @@ void UI_PrintStringSmallBufferBold(const char *pString, uint8_t * buffer)
     const uint8_t *font = (uint8_t *)gFontSmallBold;
     const uint8_t char_width = ARRAY_SIZE(gFontSmallBold[0]);
 #else
-    const uint8_t *font = (uint8_t *)gFontSmall;
-    const uint8_t char_width = ARRAY_SIZE(gFontSmall[0]);
+    const uint8_t *font = (uint8_t *)gFontSmallBold;
+    const uint8_t char_width = ARRAY_SIZE(gFontSmallBold[0]);
 #endif
     UI_PrintStringBuffer(pString, buffer, char_width, font);
 }

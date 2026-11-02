@@ -451,14 +451,11 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo)
     uint8_t Txp[3];
     
     PY25Q16_ReadBuffer(0x100D0 + (Band * 16) + (pInfo->OUTPUT_POWER * 3), Txp, 3);
-    const uint8_t p1 = 4;
-	const uint8_t p2 = 1;
-	const uint8_t p3 = 70;	
     
     for (uint8_t p = 0; p < 3; p++){
-        if (pInfo->OUTPUT_POWER == OUTPUT_POWER_LOW)    Txp[p] /= p1;
-		if (pInfo->OUTPUT_POWER == OUTPUT_POWER_MID)    Txp[p] /= p2;
-		if (pInfo->OUTPUT_POWER == OUTPUT_POWER_HIGH)   Txp[p] += p3;
+        if (pInfo->OUTPUT_POWER == OUTPUT_POWER_LOW)    Txp[p] /= 4;
+		if (pInfo->OUTPUT_POWER == OUTPUT_POWER_MID)    Txp[p] /= 1;
+		if (pInfo->OUTPUT_POWER == OUTPUT_POWER_HIGH)   Txp[p] += 24;
     }
 
 

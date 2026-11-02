@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-Font Editor Iggi — Éditeur de fontes bitmap 10×16 pixels (gFontBigDigits)
+Font Editor Iggi — Éditeur de fontes bitmap multi-sizes
 
 Permet de dessiner des caractères dans une grille, générer le code C,
 et exporter/importer des données hexadécimales.
+
+Supporté : 7×16, 10×16, 6×8, 3×5
 
 Usage: python font_editor_11x20.py
 """
@@ -13,18 +15,26 @@ from tkinter import ttk, messagebox
 import re
 
 
-# --- Données de police par défaut (à remplir avec vos glyphes C) ---
+# --- Données de police par défaut ---
+
 # gFontBigDigits : 11 glyphes (0-9 + "-"), 20 octets chacun (10×16 pixels)
 gFontBigDigits = [[0x00] * 20 for _ in range(11)]
 gFontBigDigits_chars = "0123456789-"
 
-gFontBig = [[0x00] * 14]
+# gFont7x16 : 95 glyphes (ASCII imprimable), 14 octets chacun (7×16 pixels)
+gFont7x16 = [[0x00] * 14 for _ in range(94)]
+gFont7x16_chars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+
+# gFontBig : 95 glyphes, 14 octets chacun (7×16 pixels)
+gFontBig = [[0x00] * 14 for _ in range(94)]
 gFontBig_chars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 
-gFontSmall = [[0x00] * 6]
-gFontSmall_chars = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+# gFontSmall : 95 glyphes, 6 octets chacun (6×8 pixels)
+gFontSmall = [[0x00] * 6 for _ in range(94)]
+gFontSmall_chars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 
-gFont3x5 = [[0x00] * 3]
+# gFont3x5 : 95 glyphes, 3 octets chacun (3×5 pixels)
+gFont3x5 = [[0x00] * 3 for _ in range(95)]
 gFont3x5_chars = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 
 
@@ -36,11 +46,11 @@ class FontTab:
         self.width = width
         self.height = height
         self.chars = chars
-        self.bytes_per_glyph = bytes_per_glyph or width * (2 if height > 8 else 1)
+        self.bytes_per_glyph = bytes_per_glyph or (width * 2 if height > 8 else width)
 
         self.frame = ttk.Frame(parent.notebook)
         
-        self.cell_size = 24
+        self.cell_size = max(20, 240 // width)  # Ajuste la taille des cellules selon la largeur
         self.canvas = tk.Canvas(
             self.frame,
             width=width * self.cell_size,
@@ -80,7 +90,6 @@ class FontTab:
             values=list(chars), width=5, state="readonly"
         )
         self.char_combo.pack(side=tk.LEFT, padx=5)
-        # On intercepte le changement via un bind, mais on garde la trace de l'ancien caractère pour sauvegarder
         self.previous_char = self.char_var.get()
         self.char_combo.bind("<<ComboboxSelected>>", self.on_char_change)
 
@@ -89,8 +98,16 @@ class FontTab:
         ttk.Button(controls, text="Effacer", command=self.clear_grid).pack(side=tk.LEFT, padx=5)
         ttk.Button(controls, text="Tout exporter", command=self.export_all).pack(side=tk.LEFT, padx=5)
 
+        # Info sur la fonte
+        info_label = ttk.Label(
+            controls, 
+            text=f"{width}×{height}px, {self.bytes_per_glyph} octets/glyphe",
+            foreground="#666"
+        )
+        info_label.pack(side=tk.RIGHT, padx=10)
+
         # Zone de sortie
-        self.output = tk.Text(self.frame, height=5, wrap=tk.NONE, font=("Courier", 9))
+        self.output = tk.Text(self.frame, height=8, wrap=tk.NONE, font=("Courier", 9))
         self.output.pack(fill=tk.X, padx=10, pady=5)
 
         # Chargement initial
@@ -245,13 +262,13 @@ class FontEditor(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.title("Font Editor Iggi — fonte 10 × 16")
-        self.geometry("860x800")
+        self.title("Font Editor Iggi — Multi-size bitmap fonts")
+        self.geometry("900x850")
 
         # En-tête
         intro = ttk.Label(
             self,
-            text="gFontBigDigits : 11 glyphes × 20 octets (10 colonnes × 16 pixels)",
+            text="Éditeur de fontes bitmap — Support: 7×16, 10×16, 6×8, 3×5",
             font=("TkDefaultFont", 11, "bold")
         )
         intro.pack(pady=(8, 0))
@@ -260,14 +277,27 @@ class FontEditor(tk.Tk):
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(expand=True, fill="both", padx=10, pady=10)
 
+        # Création des onglets pour chaque fonte
         self.tabs = {
+            "gFont7x16": FontTab(
+                "gFont7x16", 7, 16, gFont7x16_chars,
+                self, bytes_per_glyph=14
+            ),
             "gFontBigDigits": FontTab(
                 "gFontBigDigits", 10, 16, gFontBigDigits_chars,
                 self, bytes_per_glyph=20
-            )
+            ),
+            "gFontSmall": FontTab(
+                "gFontSmall", 6, 8, gFontSmall_chars,
+                self, bytes_per_glyph=6
+            ),
+            "gFont3x5": FontTab(
+                "gFont3x5", 3, 5, gFont3x5_chars,
+                self, bytes_per_glyph=3
+            ),
         }
         for tab in self.tabs.values():
-            self.notebook.add(tab.frame, text=f"{tab.name} ({len(tab.chars)} glyphes)")
+            self.notebook.add(tab.frame, text=f"{tab.name} ({len(tab.chars)} glyphes, {tab.width}×{tab.height})")
 
         # Importation
         import_frame = ttk.LabelFrame(self, text="Importer une table C")
@@ -296,15 +326,21 @@ class FontEditor(tk.Tk):
             return
 
         values = [int(v, 16) for v in hex_matches]
-        target = self.tabs["gFontBigDigits"]
-        expected_single = target.bytes_per_glyph  # 20
-        expected_full = len(target.chars) * expected_single  # 11 × 20 = 220
+        tab_name = self.notebook.tab(self.notebook.select())["text"].split()[0]
+        target = self.tabs.get(tab_name)
+        
+        if not target:
+            messagebox.showerror("Import", "Onglet non sélectionné.")
+            return
+            
+        expected_single = target.bytes_per_glyph
+        expected_full = len(target.chars) * expected_single
 
         if len(values) == expected_single:
             # Glyphe unique
             char = target.char_var.get()
             idx = target.chars.index(char)
-            gFontBigDigits[idx] = values
+            globals()[target.name][idx] = values
             target.load_char()
             messagebox.showinfo("Import", f"Glyphe « {char} » importé ({len(values)} octets).")
             
@@ -312,7 +348,7 @@ class FontEditor(tk.Tk):
             # Fonte complète
             for idx in range(len(target.chars)):
                 start = idx * expected_single
-                gFontBigDigits[idx] = values[start:start + expected_single]
+                globals()[target.name][idx] = values[start:start + expected_single]
             target.load_char()
             messagebox.showinfo("Import", f"Fonte complète importée ({len(values)} octets).")
             
