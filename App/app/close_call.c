@@ -2217,4 +2217,10 @@ void APP_RunCloseCall(void)
     CC_OpenAudio(false);
     gRequestDisplayScreen = previousScreen;
     gUpdateDisplay = true;
+    gVfoConfigureMode = VFO_CONFIGURE;
+    SETTINGS_InitEEPROM();
+    RADIO_ConfigureChannel(0, VFO_CONFIGURE_RELOAD);
+    RADIO_SelectVfos();
+    RADIO_SetupRegisters(true);
+    UI_DisplayClear();
 }
